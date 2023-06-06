@@ -53,16 +53,12 @@ router.post("/login", async (req, res) => {
           process.env.SECRET_KEY
         );
         res
-          .cookie("jwttoken", token, {
-            secure: false,
-            sameSite: "none",
-          })
           .json({
             success:true,
-            id: findUser._id,
-            username: findUser.username,
-            jwt: token,
-            cookie: req.cookies,
+            _id:findUser._id,
+            email: findUser._email,
+            username: findUser._username,
+            jwttoken:token,
             msg:"User logged in successfully"
           });
       } else {
@@ -100,22 +96,6 @@ router.get("/profileinfo", async (req, res) => {
   }
 });
 
-router.post("/logout", async (req, res) => {
-  try {
-    await res.clearCookie("jwttoken", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
-    res.json({ success: true , msg:"User logged out successfully"});
-  } catch (error) {
-    res.json({
-      success: false,
-      msg: "Some Error Occurred at the Server",
-      error: error.message,
-    });
-  }
-});
 
 router.post("/post", uploadMiddleware.single("file"), async (req, res) => {
   try {
@@ -125,7 +105,7 @@ router.post("/post", uploadMiddleware.single("file"), async (req, res) => {
     const newPath = path + "." + ext;
     fs.renameSync(path, newPath);
 
-    const { jwttoken } = req.cookies;
+    const { jwttoken } = req.body;
     const verifyToken = await jwt.verify(jwttoken, process.env.SECRET_KEY);
     if (verifyToken) {
       const { title, summary, content, category } = req.body;
